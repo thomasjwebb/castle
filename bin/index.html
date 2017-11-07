@@ -62,6 +62,7 @@
 				<option value="file">File</option>
 				<option value="image">Image</option>
 				<option value="tilepos">Tile</option>
+				<option value="tileanim">Tile Animation</option>
 				<option value="dynamic">Dynamic</option>
 				<option value="layer">Data Layer</option>
 				<option value="tilelayer">Tile Layer</option>
@@ -142,6 +143,26 @@
 				Size <input name="size"/>
 				W <input name="width"/>
 				H <input name="height"/>
+				<input name="file" type="submit" value="File..."/>
+				<input name="cancel" type="submit" value="Cancel"/>
+			</div>
+			<div class="tileScroll">
+				<div class="tileView">
+					<div class="tileCursor"></div>
+					<div class="tileCursor current"></div>
+				</div>
+			</div>
+			<div class="tilePath">
+			</div>
+		</div>
+	</div>
+	</div>
+
+	<div class="box">
+	<div class="tileAnimationSelect modal" style="display:none">
+		<div class="content">
+			<div class="menu">
+				Size <input name="size"/>
 				<input name="file" type="submit" value="File..."/>
 				<input name="cancel" type="submit" value="Cancel"/>
 			</div>

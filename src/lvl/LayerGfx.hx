@@ -95,6 +95,31 @@ class LayerGfx {
 					});
 					level.watch(data.file, function() { Image.clearCache(level.model.getAbsPath(data.file)); level.reload(); });
 				}
+			case TTileAnimation:
+				if( images == null ) images = [];
+
+				var size = level.tileSize;
+
+				for( idx in 0...sheet.lines.length ) {
+					if( imageTags[idx] ) continue;
+					var data : cdb.Types.TileAnimation = Reflect.field(sheet.lines[idx], c.name);
+					if( data == null && images[idx] != null ) continue;
+					if( data == null ) {
+						var i = new Image(size, size);
+						i.text("#" + idx, 0, 12);
+						images[idx] = i;
+						continue;
+					}
+					level.wait();
+					imageTags[idx] = true;
+					Image.load(level.model.getAbsPath(data.file), function(i) {
+						var i2 = i.sub(data.x * data.size, data.y * data.size, data.size, data.size);
+						images[idx] = i2;
+						blanks[idx] = i2.isBlank();
+						level.waitDone();
+					});
+					level.watch(data.file, function() { Image.clearCache(level.model.getAbsPath(data.file)); level.reload(); });
+				}
 
 			case TId:
 				idCol = c;

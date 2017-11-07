@@ -161,6 +161,8 @@ class Module {
 					macro : cdb.Types.Layer<$t>;
 				case TTilePos:
 					macro : cdb.Types.TilePos;
+				case TTileAnimation:
+					macro : cdb.Types.TileAnimation;
 				case TTileLayer:
 					macro : cdb.Types.TileLayer;
 				case TDynamic:
@@ -181,6 +183,7 @@ class Module {
 					macro : Array<$t>;
 				case TLayer(_): macro : String;
 				case TTilePos: macro : { file : String, size : Int, x : Int, y : Int, ?width : Int, ?height : Int };
+				case TileAnimation: macro : { file : String, size : Int, sequence : Array<Int> };
 				case TTileLayer: macro : { file : String, stride : Int, size : Int, data : String };
 				case TDynamic: macro : Dynamic;
 				case TProperties:
@@ -200,7 +203,7 @@ class Module {
 				});
 
 				switch( c.type ) {
-				case TInt, TFloat, TString, TBool, TImage, TColor, TFile, TTilePos, TDynamic:
+				case TInt, TFloat, TString, TBool, TImage, TColor, TFile, TTilePos, TTileAnimation, TDynamic:
 					var cname = c.name;
 					fields.push({
 						name : "get_"+c.name,
@@ -439,7 +442,7 @@ class Module {
 					case TRef(s):
 						var fname = fieldName(s);
 						macro $i{modName}.$fname.resolve(v[$v{ai+1}]);
-					case TList, TLayer(_), TTilePos, TProperties:
+					case TList, TLayer(_), TTilePos, TTileAnimation, TProperties:
 						throw "assert";
 					}
 					eargs.push(econv);

@@ -483,10 +483,11 @@ class Main extends Model {
 		case TImage:
 			saveImages();
 		case TTilePos:
+		case TTileAnimation:
 			// if we change a file that has moved, change it for all instances having the same file
 			var obj = sheet.lines[index];
-			var oldV : cdb.Types.TilePos = old;
-			var newV : cdb.Types.TilePos = Reflect.field(obj, c.name);
+			var oldV : { file : String } = old;
+			var newV : { file : String } = Reflect.field(obj, c.name);
 			if( newV != null && oldV != null && oldV.file != newV.file && !sys.FileSystem.exists(getAbsPath(oldV.file)) && sys.FileSystem.exists(getAbsPath(newV.file)) ) {
 				var change = false;
 				for( i in 0...sheet.lines.length ) {
@@ -526,6 +527,22 @@ class Main extends Model {
 		var inl = isInline ? 'display:inline-block;' : '';
 		var url = "file://" + path;
 		var html = '<div class="tile" id="_c${id}" style="width : ${Std.int(width * zoom)}px; height : ${Std.int(height * zoom)}px; background : url(\'$url\') -${Std.int(v.size*v.x*zoom)}px -${Std.int(v.size*v.y*zoom)}px; opacity:0; $inl"></div>';
+		html += '<img src="$url" style="display:none" onload="$(\'#_c$id\').css({opacity:1, backgroundSize : ((this.width*$zoom)|0)+\'px \' + ((this.height*$zoom)|0)+\'px\' '+(zoom > 1 ? ", imageRendering : 'pixelated'" : "") +'}); if( this.parentNode != null ) this.parentNode.removeChild(this)"/>';
+		return html;
+	}
+
+	function tileAnimationHtml( v : cdb.Types.TileAnimation ) {
+		var path = getAbsPath(v.file);
+		if( !quickExists(path) ) {
+			return "";
+		}
+		var id = UID++;
+		var width = v.size;
+		var height = v.size;
+		var max = width > height ? width : height;
+		var zoom = max <= 32 ? 2 : 64 / max;
+		var url = "file://" + path;
+		var html = '<div class="tile" id="_c${id}" style="width : ${Std.int(width * zoom)}px; height : ${Std.int(height * zoom)}px; background : url(\'$url\') -${Std.int(v.size*v.x*zoom)}px -${Std.int(v.size*v.y*zoom)}px; opacity:0;"></div>';
 		html += '<img src="$url" style="display:none" onload="$(\'#_c$id\').css({opacity:1, backgroundSize : ((this.width*$zoom)|0)+\'px \' + ((this.height*$zoom)|0)+\'px\' '+(zoom > 1 ? ", imageRendering : 'pixelated'" : "") +'}); if( this.parentNode != null ) this.parentNode.removeChild(this)"/>';
 		return html;
 	}
@@ -649,6 +666,8 @@ class Main extends Model {
 			html;
 		case TTilePos:
 			return tileHtml(v);
+		case TTileAnimation:
+			return tileAnimationHtml(v);
 		case TTileLayer:
 			var v : cdb.Types.TileLayer = v;
 			var path = getAbsPath(v.file);
@@ -811,6 +830,8 @@ class Main extends Model {
 		case TString, TRef(_):
 			ndisp.enabled = true;
 		case TTilePos:
+			nicon.enabled = true;
+		case TTileAnimation:
 			nicon.enabled = true;
 		default:
 		}
@@ -1244,7 +1265,7 @@ class Main extends Model {
 				v.html(getValue());
 				save();
 			}}).spectrum("show");
-		case TList, TLayer(_), TFile, TTilePos, TProperties:
+		case TList, TLayer(_), TFile, TTilePos, TTileAnimation, TProperties:
 			throw "assert2";
 		}
 	}
@@ -1789,6 +1810,101 @@ class Main extends Model {
 
 					});
 
+				case TTileAnimation:
+
+					v.find("div").addClass("deletable").change(function(e) {
+						if( Reflect.field(obj,c.name) != null ) {
+							Reflect.deleteField(obj, c.name);
+							refresh();
+							save();
+						}
+					});
+
+					v.dblclick(function(_) {
+						var rv : cdb.Types.TileAnimation = val;
+						var file = rv == null ? null : rv.file;
+						var size = rv == null ? 16 : rv.size;
+						var posX = rv == null ? 0 : rv.x;
+						var posY = rv == null ? 0 : rv.y;
+						var sequence = rv == null ? [] : rv.sequence;
+						if( file == null ) {
+							var i = index - 1;
+							while( i >= 0 ) {
+								var o = sheet.lines[i--];
+								var v2 = Reflect.field(o, c.name);
+								if( v2 != null ) {
+									file = v2.file;
+									size = v2.size;
+									break;
+								}
+							}
+						}
+
+						function setVal() {
+							var v : Dynamic = { file : file, size : size, x : posX, y : posY, sequence : sequence };
+							set(v);
+						}
+
+						if( file == null ) {
+							chooseFile(function(path) {
+								file = path;
+								setVal();
+								v.dblclick();
+							});
+							return;
+						}
+						var dialog = J(J(".tileAnimationSelect").parent().html()).prependTo(J("body"));
+
+						var maxWidth = 1000000, maxHeight = 1000000;
+
+						dialog.find(".tileView").css( { backgroundImage : 'url("file://${getAbsPath(file)}")' } ).mousemove(function(e) {
+							var off = JTHIS.offset();
+							posX = Std.int((e.pageX - off.left) / size);
+							posY = Std.int((e.pageY - off.top) / size);
+							if( posX * size > maxWidth )
+								posX = Std.int(maxWidth / size);
+							if( posY * size > maxHeight )
+								posY = Std.int(maxHeight / size);
+							if( posX < 0 ) posX = 0;
+							if( posY < 0 ) posY = 0;
+							J(".tileCursor").not(".current").css({
+								marginLeft : (size * posX - 1) + "px",
+								marginTop : (size * posY - 1) + "px",
+							});
+						}).click(function(_) {
+							setVal();
+							dialog.remove();
+							save();
+						});
+						dialog.find("[name=size]").val("" + size).change(function(_) {
+							size = Std.parseInt(JTHIS.val());
+							J(".tileCursor").css( { width:size+"px", height:size+"px" } );
+							J(".tileCursor.current").css( { marginLeft : (size * posX - 2) + "px", marginTop : (size * posY - 2) + "px" } );
+						}).change();
+						dialog.find("[name=cancel]").click(function(_) dialog.remove());
+						dialog.find("[name=file]").click(function(_) {
+							chooseFile(function(f) {
+								file = f;
+								dialog.remove();
+								setVal();
+								save();
+								v.dblclick();
+							});
+						});
+						dialog.keydown(function(e) e.stopPropagation()).keypress(function(e) e.stopPropagation());
+						dialog.show();
+
+						var i = js.Browser.document.createImageElement();
+						i.onload = function(_) {
+							maxWidth = i.width;
+							maxHeight = i.height;
+							dialog.find(".tileView").height(i.height).width(i.width);
+							dialog.find(".tilePath").text(file+" (" + i.width + "x" + i.height + ")");
+						};
+						i.src = "file://" + getAbsPath(file);
+
+					});
+
 
 				default:
 					v.dblclick(function(e) editCell(c, v, sheet, index));
@@ -2220,6 +2336,8 @@ class Main extends Model {
 			TFile;
 		case "tilepos":
 			TTilePos;
+		case "tileanim":
+			TTileAnimation;
 		case "tilelayer":
 			TTileLayer;
 		case "dynamic":

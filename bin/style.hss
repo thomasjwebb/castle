@@ -189,6 +189,46 @@ div.modal {
 	}
 }
 
+.modal.tileAnimationSelect {
+	.menu {
+		input[name=size] {
+			width : 90px;
+		}
+		margin-bottom : 5px;
+	}
+	.tileCursor {
+		position : absolute;
+		z-index : 100;
+		width : 16px;
+		height : 16px;
+		border : 1px solid white;
+		outline : 1px solid black;
+	}
+	.tileCursor.current {
+		border : 2px solid red;
+		outline : none;
+	}
+	.tileView {
+		min-height : 64px;
+		background-color : #eee;
+		background-repeat : no-repeat;
+	}
+	.tilePath {
+		color : #888;
+		font-size : 11px;
+	}
+	.tileScroll {
+		background-color : #555;
+		position:relative;
+		padding-right : 5px;
+		padding-bottom : 5px;
+		border : 1px solid black;
+		max-width: 640px;
+		max-height : 640px;
+		overflow : auto;
+	}
+}
+
 .modal#newtype .content {
 	width : 500px;
 }
@@ -573,7 +613,7 @@ div#menu {
 			.icon {
 				width : 16px;
 				height : 16px;
-				border : 1 px solid #CCC;
+				border : 1px solid #CCC;
 				cursor : pointer;
 				display : inline-block;
 				margin-right : 2px;
@@ -774,7 +814,7 @@ div#menu {
 		}
 		.item.selected {
 			background-color : #FFF;
-			border : 1 px solid #888;
+			border : 1px solid #888;
 			padding : 9px;
 		}
 

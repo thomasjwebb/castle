@@ -34,6 +34,7 @@ enum ColumnType {
 	TTileLayer;
 	TDynamic;
 	TProperties;
+	TTileAnimation;
 }
 
 #if macro

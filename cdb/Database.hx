@@ -186,7 +186,7 @@ class Database {
 		case TBool: false;
 		case TList: [];
 		case TProperties : {};
-		case TCustom(_), TTilePos, TTileLayer, TDynamic: null;
+		case TCustom(_), TTilePos, TTileAnimation, TTileLayer, TDynamic: null;
 		}
 	}
 
@@ -538,7 +538,7 @@ class Database {
 		case TColor:
 			var s = "#" + StringTools.hex(val, 6);
 			esc ? '"' + s + '"' : s;
-		case TTileLayer, TDynamic, TTilePos:
+		case TTileLayer, TTileAnimation, TDynamic, TTilePos:
 			esc ? haxe.Json.stringify(val) : Std.string(val);
 		case TProperties, TList:
 			"???";

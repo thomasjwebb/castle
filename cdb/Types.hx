@@ -180,6 +180,14 @@ typedef TilePos = {
 	var height(default, never) : Null<Int>;
 }
 
+typedef TileAnimation = {
+	var file(default, never) : String;
+	var size(default, never) : Int;
+	var x(default, never) : Int;
+	var y(default, never) : Int;
+	var sequence : Array<Int>;
+}
+
 typedef TileLayer = {
 	var file(default, never) : String;
 	var stride(default, never) : Int;
